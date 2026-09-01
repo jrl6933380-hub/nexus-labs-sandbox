@@ -480,6 +480,58 @@
 
   .btn-skip:hover { border-color: var(--text-faint); }
 
+
+  /* ===== MISSION ORBIT: human view of the same board state agents use ===== */
+  .mission-board {
+    width: min(760px, 100%);
+    margin: 0 auto 8px;
+    padding: 18px;
+    border: 1px solid #2E7FFF38;
+    border-radius: 18px;
+    background: linear-gradient(145deg, rgba(18,25,42,.88), rgba(10,14,20,.74));
+    box-shadow: 0 24px 70px #0008, inset 0 1px 0 #ffffff08;
+  }
+  .mission-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+  .mission-kicker { font:600 9px var(--mono); letter-spacing:.18em; color:var(--cyan); text-transform:uppercase; }
+  .mission-title { font:600 15px var(--mono); margin-top:5px; }
+  .mission-live { font:600 9px var(--mono); color:var(--green); border:1px solid #4DE8A044; background:#4DE8A00d; padding:5px 8px; border-radius:999px; white-space:nowrap; }
+  .mission-core { display:grid; grid-template-columns:220px 1fr; align-items:center; gap:22px; }
+  .goal-orbit-wrap { position:relative; width:210px; height:210px; margin:auto; filter:drop-shadow(0 0 26px #2E7FFF22); }
+  .goal-orbit { position:absolute; inset:10px; border-radius:50%; background:conic-gradient(var(--cyan) 0 22%, var(--blue) 22% 46%, #A879FF 46% 66%, var(--green) 66% 78%, #1F2B42 78% 100%); animation:orbitGlow 3s ease-in-out infinite; }
+  .goal-orbit::after { content:''; position:absolute; inset:15px; border-radius:50%; background:radial-gradient(circle at 50% 40%, #172035, #0A0E14 68%); border:1px solid #2E7FFF32; box-shadow:inset 0 0 35px #000; }
+  @keyframes orbitGlow { 0%,100% { box-shadow:0 0 20px #2E7FFF18; } 50% { box-shadow:0 0 42px #4DD8E82e; } }
+  .goal-center { position:absolute; z-index:2; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:45px; pointer-events:none; }
+  .goal-percent { font:700 31px var(--mono); letter-spacing:-.06em; color:#fff; }
+  .goal-label { font:600 8px var(--mono); letter-spacing:.12em; color:var(--text-faint); text-transform:uppercase; margin-top:5px; line-height:1.5; }
+  .orbit-label { position:absolute; z-index:3; width:9px; height:9px; border-radius:50%; border:2px solid #0A0E14; box-shadow:0 0 12px currentColor; }
+  .orbit-nex { top:13px; left:101px; background:var(--cyan); color:var(--cyan); }
+  .orbit-gpt { top:90px; right:8px; background:var(--blue); color:var(--blue); }
+  .orbit-claude { bottom:10px; left:94px; background:#A879FF; color:#A879FF; }
+  .orbit-e2b { top:89px; left:7px; background:var(--green); color:var(--green); }
+  .agent-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  .agent-card { padding:10px; border:1px solid var(--border); border-radius:9px; background:#ffffff03; min-width:0; }
+  .agent-head { display:flex; align-items:center; justify-content:space-between; gap:6px; }
+  .agent-name { font:600 11px var(--mono); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .agent-state { font:600 8px var(--mono); color:var(--text-faint); text-transform:uppercase; }
+  .agent-bar { height:3px; background:var(--border); border-radius:3px; margin-top:8px; overflow:hidden; }
+  .agent-fill { display:block; height:100%; border-radius:3px; }
+  .agent-task { font-size:10px; color:var(--text-dim); margin-top:7px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mission-footer { display:flex; gap:8px; align-items:center; margin-top:14px; padding-top:12px; border-top:1px solid var(--border); overflow-x:auto; }
+  .mission-chip { font:500 8px var(--mono); color:var(--text-dim); border:1px solid var(--border); border-radius:999px; padding:5px 8px; white-space:nowrap; }
+  .mission-chip.needs-you { color:var(--amber); border-color:#E8A94D44; background:#E8A94D0b; }
+  .mission-error { color:var(--text-faint); font:500 10px var(--mono); }
+  @media(max-width:620px) {
+    .chat-scroll { padding:138px 14px 18px; }
+    .mission-board { padding:14px 12px; border-radius:15px; }
+    .mission-core { grid-template-columns:1fr; gap:12px; }
+    .goal-orbit-wrap { width:190px; height:190px; }
+    .goal-orbit-wrap .orbit-nex { left:91px; }
+    .goal-orbit-wrap .orbit-claude { left:84px; }
+    .agent-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .mission-title { font-size:12px; }
+    .goal-percent { font-size:28px; }
+  }
+
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
@@ -576,6 +628,22 @@
     </div>
 
     <div class="chat-scroll" id="chatScroll">
+      <section class="mission-board" id="missionBoard">
+        <div class="mission-top">
+          <div><div class="mission-kicker">Nexus Agent Board</div><div class="mission-title" id="missionTitle">Initializing shared mission…</div></div>
+          <div class="mission-live" id="missionLive">● LIVE STATE</div>
+        </div>
+        <div class="mission-core">
+          <div class="goal-orbit-wrap">
+            <div class="goal-orbit" id="goalOrbit"></div>
+            <span class="orbit-label orbit-nex"></span><span class="orbit-label orbit-gpt"></span>
+            <span class="orbit-label orbit-claude"></span><span class="orbit-label orbit-e2b"></span>
+            <div class="goal-center"><div class="goal-percent" id="goalPercent">0%</div><div class="goal-label">Overall<br>Objective</div></div>
+          </div>
+          <div class="agent-grid" id="agentGrid"></div>
+        </div>
+        <div class="mission-footer" id="missionFooter"></div>
+      </section>
       <div class="empty-hint" id="historyLoading">Loading conversation...</div>
     </div>
 
@@ -607,6 +675,92 @@
 
 </div>
 <script>
+
+  const AGENT_VISUALS = {
+    nex: { color: '#4DD8E8', label: 'Nex' },
+    chatgpt: { color: '#2E7FFF', label: 'ChatGPT' },
+    claude: { color: '#A879FF', label: 'Claude' },
+    gemini: { color: '#F2C94C', label: 'Gemini' },
+    e2b: { color: '#4DE8A0', label: 'E2B' },
+  };
+  const STATUS_PROGRESS = { idle: 5, planning: 22, building: 58, testing: 82, waiting_for_justin: 92, blocked: 45, complete: 100 };
+  const demoBoard = {
+    tasks: [
+      { title: 'Dynamic agent registry', owner: 'chatgpt', status: 'complete' },
+      { title: 'Agent Board backend', owner: 'claude', status: 'complete' },
+      { title: 'Coordinate active mission', owner: 'nex', status: 'building' },
+      { title: 'Validate preview build', owner: 'e2b', status: 'testing' },
+      { title: 'Review sandbox PR', owner: null, status: 'waiting_for_justin' },
+    ],
+    agents: [
+      { id: 'nex', display_name: 'Nex', status: 'online', mode: 'permanent' },
+      { id: 'chatgpt', display_name: 'ChatGPT', status: 'online', mode: 'subscription_connector' },
+      { id: 'claude', display_name: 'Claude', status: 'available_on_demand', mode: 'subscription_connector' },
+      { id: 'e2b', display_name: 'E2B', status: 'online', mode: 'api' },
+    ],
+    demo: true,
+  };
+
+  function safeText(value) {
+    return String(value || '').replace(/[&<>"']/g, (ch) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+
+  function renderMissionBoard(board) {
+    const tasks = board.tasks || [];
+    const agents = board.agents && board.agents.length ? board.agents : demoBoard.agents;
+    const open = tasks.filter((task) => task.status !== 'complete');
+    const completed = tasks.filter((task) => task.status === 'complete').length;
+    const progress = tasks.length ? Math.round(tasks.reduce((sum, task) => sum + (STATUS_PROGRESS[task.status] || 0), 0) / tasks.length) : 0;
+    const activeGoal = open[0]?.title || tasks[0]?.title || 'Standing by for a mission';
+
+    document.getElementById('missionTitle').textContent = activeGoal;
+    document.getElementById('goalPercent').textContent = progress + '%';
+    document.getElementById('missionLive').textContent = board.demo ? '◉ SANDBOX DEMO' : '● LIVE STATE';
+
+    const palette = agents.map((agent) => (AGENT_VISUALS[agent.id] || { color:'#8891A3' }).color);
+    const filled = Math.max(0, Math.min(progress, 100));
+    const step = filled / Math.max(agents.length, 1);
+    const stops = [];
+    agents.forEach((agent, index) => {
+      const start = index * step;
+      const end = (index + 1) * step;
+      stops.push(`${palette[index]} ${start}% ${end}%`);
+    });
+    stops.push(`#1F2B42 ${filled}% 100%`);
+    document.getElementById('goalOrbit').style.background = `conic-gradient(${stops.join(',')})`;
+
+    document.getElementById('agentGrid').innerHTML = agents.slice(0, 6).map((agent) => {
+      const visual = AGENT_VISUALS[agent.id] || { color:'#8891A3', label:agent.display_name || agent.id };
+      const owned = tasks.filter((task) => task.owner === agent.id);
+      const task = owned.find((item) => item.status !== 'complete') || owned[0];
+      const agentProgress = task ? (STATUS_PROGRESS[task.status] || 0) : (agent.status === 'online' ? 8 : 0);
+      return `<div class="agent-card">
+        <div class="agent-head"><span class="agent-name" style="color:${visual.color}">${safeText(agent.display_name || visual.label)}</span><span class="agent-state">${safeText(task?.status || agent.status)}</span></div>
+        <div class="agent-bar"><span class="agent-fill" style="width:${agentProgress}%;background:${visual.color}"></span></div>
+        <div class="agent-task">${safeText(task?.title || 'Available for assignment')}</div>
+      </div>`;
+    }).join('');
+
+    const needsJustin = tasks.filter((task) => task.status === 'waiting_for_justin').length;
+    document.getElementById('missionFooter').innerHTML =
+      `<span class="mission-chip">${completed}/${tasks.length} tasks complete</span>
+       <span class="mission-chip">${agents.length} agents visible</span>
+       <span class="mission-chip">E2B verified</span>
+       ${needsJustin ? `<span class="mission-chip needs-you">Justin needed · ${needsJustin}</span>` : ''}`;
+  }
+
+  async function loadMissionBoard() {
+    try {
+      const res = await fetch('/api/board');
+      if (!res.ok) throw new Error('board unavailable');
+      const board = await res.json();
+      if (!(board.tasks || []).length) return renderMissionBoard(demoBoard);
+      renderMissionBoard(board);
+    } catch {
+      renderMissionBoard(demoBoard);
+    }
+  }
+
   const chatScroll = document.getElementById('chatScroll');
   const chatInput = document.getElementById('chatInput');
   const sendBtn = document.getElementById('sendBtn');
@@ -818,9 +972,11 @@
     if (e.key === 'Enter') sendMessage();
   });
 
+  loadMissionBoard();
   loadHistory();
   loadQueue();
-  setInterval(loadQueue, 10000); // refresh every 10s so new proposals show up automatically
+  setInterval(loadQueue, 10000);
+  setInterval(loadMissionBoard, 10000); // refresh every 10s so new proposals show up automatically
 </script>
 
 </body>

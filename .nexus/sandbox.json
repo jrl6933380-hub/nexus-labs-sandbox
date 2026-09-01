@@ -1,0 +1,8 @@
+{
+  "environment": "sandbox",
+  "productionRepository": "jrl6933380-hub/nexus-labs",
+  "sandboxRepository": "jrl6933380-hub/nexus-labs-sandbox",
+  "vercelProjectId": "prj_LiIVGu7iM4UWS1O5IMDrGwSuNDgm",
+  "dataPolicy": "isolated-test-resources-only",
+  "promotionPolicy": "validated-pull-request"
+}

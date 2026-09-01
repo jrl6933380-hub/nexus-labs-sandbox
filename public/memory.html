@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nex — Memory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0E14;
+    --panel: #12192A;
+    --border: #1F2B42;
+    --blue: #2E7FFF;
+    --blue-dim: #2E7FFF33;
+    --cyan: #4DD8E8;
+    --text: #E4E9F2;
+    --text-dim: #8891A3;
+    --text-faint: #5B6577;
+    --amber: #E8A94D;
+    --red: #E85D5D;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', -apple-system, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 48px 48px;
+    padding: 24px 16px 60px;
+  }
+
+  .header {
+    max-width: 700px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .title {
+    font-family: var(--mono);
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .back-link {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 6px;
+  }
+
+  .container { max-width: 700px; margin: 0 auto; }
+
+  .add-panel {
+    background: rgba(18,25,42,0.6);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+
+  .add-panel textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    resize: vertical;
+    min-height: 60px;
+    outline: none;
+    margin-bottom: 10px;
+  }
+
+  .add-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  select {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 0 10px;
+  }
+
+  .add-btn {
+    background: var(--blue);
+    color: #06090F;
+    border: none;
+    border-radius: 8px;
+    padding: 0 18px;
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    flex: 1;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin: 20px 0 10px;
+  }
+
+  .memory-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .memory-content {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .memory-meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    margin-top: 6px;
+  }
+
+  .delete-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--red);
+    border-radius: 6px;
+    padding: 5px 9px;
+    font-size: 12px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .delete-btn:hover { border-color: var(--red); }
+
+  .empty-hint {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-faint);
+    padding: 10px 2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="title">NEX // MEMORY</span>
+  <a class="back-link" href="/">← Back to chat</a>
+</div>
+
+<div class="container">
+  <div class="add-panel">
+    <textarea id="new-content" placeholder="Add something manually for Nex to remember..."></textarea>
+    <div class="add-row">
+      <select id="new-category">
+        <option value="fact">Fact</option>
+        <option value="project">Project</option>
+      </select>
+      <button class="add-btn" id="add-btn">Save memory</button>
+    </div>
+  </div>
+
+  <div class="section-label">Facts</div>
+  <div id="facts-list"></div>
+
+  <div class="section-label">Projects</div>
+  <div id="projects-list"></div>
+</div>
+
+<script>
+  const factsList = document.getElementById('facts-list');
+  const projectsList = document.getElementById('projects-list');
+  const newContent = document.getElementById('new-content');
+  const newCategory = document.getElementById('new-category');
+  const addBtn = document.getElementById('add-btn');
+
+  function renderCard(memory) {
+    const card = document.createElement('div');
+    card.className = 'memory-card';
+    const date = new Date(memory.created_at || Date.now()).toLocaleDateString();
+    card.innerHTML = `
+      <div>
+        <div class="memory-content"></div>
+        <div class="memory-meta">${date}</div>
+      </div>
+      <button class="delete-btn">Delete</button>
+    `;
+    card.querySelector('.memory-content').innerText = memory.content;
+    card.querySelector('.delete-btn').addEventListener('click', () => deleteMemory(memory.id));
+    return card;
+  }
+
+  async function loadMemories() {
+    factsList.innerHTML = '';
+    projectsList.innerHTML = '';
+    try {
+      const res = await fetch('/api/memory');
+      const data = await res.json();
+      const memories = data.memories || [];
+
+      const facts = memories.filter((m) => m.category !== 'project');
+      const projects = memories.filter((m) => m.category === 'project');
+
+      if (facts.length === 0) {
+        factsList.innerHTML = '<div class="empty-hint">Nothing saved yet.</div>';
+      } else {
+        facts.forEach((m) => factsList.appendChild(renderCard(m)));
+      }
+
+      if (projects.length === 0) {
+        projectsList.innerHTML = '<div class="empty-hint">Nothing saved yet.</div>';
+      } else {
+        projects.forEach((m) => projectsList.appendChild(renderCard(m)));
+      }
+    } catch (err) {
+      factsList.innerHTML = '<div class="empty-hint">Couldn\'t load memories.</div>';
+    }
+  }
+
+  async function deleteMemory(id) {
+    try {
+      await fetch(`/api/memory?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      loadMemories();
+    } catch (err) {
+      alert('Failed to delete.');
+    }
+  }
+
+  addBtn.addEventListener('click', async () => {
+    const content = newContent.value.trim();
+    if (!content) return;
+    addBtn.disabled = true;
+    try {
+      await fetch('/api/memory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, category: newCategory.value }),
+      });
+      newContent.value = '';
+      loadMemories();
+    } catch (err) {
+      alert('Failed to save.');
+    } finally {
+      addBtn.disabled = false;
+    }
+  });
+
+  loadMemories();
+</script>
+
+</body>
+</html>

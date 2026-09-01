@@ -1,0 +1,8 @@
+{
+  "name": "nexus-labs",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@sentry/node": "^8.0.0"
+  }
+}

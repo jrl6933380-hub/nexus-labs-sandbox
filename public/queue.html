@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nex — Approval Queue</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0E14;
+    --panel: #12192A;
+    --border: #1F2B42;
+    --blue: #2E7FFF;
+    --cyan: #4DD8E8;
+    --text: #E4E9F2;
+    --text-dim: #8891A3;
+    --text-faint: #5B6577;
+    --amber: #E8A94D;
+    --red: #E85D5D;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', -apple-system, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 48px 48px;
+    padding: 24px 16px 60px;
+  }
+
+  .header {
+    max-width: 700px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .title {
+    font-family: var(--mono);
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .back-link {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 6px;
+  }
+
+  .container { max-width: 700px; margin: 0 auto; }
+
+  .queue-item {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--amber);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+
+  .queue-item-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .queue-item-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+
+  .queue-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-run, .btn-skip {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    text-transform: uppercase;
+    flex: 1;
+  }
+
+  .btn-run {
+    background: var(--blue);
+    color: #06090F;
+  }
+
+  .btn-skip {
+    background: transparent;
+    border-color: var(--border);
+    color: var(--text-dim);
+  }
+
+  .empty-hint {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-faint);
+    padding: 10px 2px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="title">NEX // QUEUE</span>
+  <a class="back-link" href="/">← Back to chat</a>
+</div>
+
+<div class="container" id="queue-list">
+  <div class="empty-hint">Loading...</div>
+</div>
+
+<script>
+  const queueList = document.getElementById('queue-list');
+
+  function renderQueueItem(item) {
+    const el = document.createElement('div');
+    el.className = 'queue-item';
+    const label = item.tool.replace('_repo_file', '').replace('_', ' ');
+    el.innerHTML = `
+      <div class="queue-item-title"></div>
+      <div class="queue-item-desc"></div>
+      <div class="queue-actions">
+        <button class="btn-run">Approve</button>
+        <button class="btn-skip">Reject</button>
+      </div>
+    `;
+    el.querySelector('.queue-item-title').innerText = `${label} — ${item.input.path}`;
+    el.querySelector('.queue-item-desc').innerText = item.description;
+    el.querySelector('.btn-run').addEventListener('click', () => handleQueueAction(item.id, 'approve', el));
+    el.querySelector('.btn-skip').addEventListener('click', () => handleQueueAction(item.id, 'reject', el));
+    return el;
+  }
+
+  async function loadQueue() {
+    try {
+      const res = await fetch('/api/queue');
+      const data = await res.json();
+      const items = data.items || [];
+
+      queueList.innerHTML = '';
+      if (items.length === 0) {
+        queueList.innerHTML = '<div class="empty-hint">Nothing waiting on you right now.<br><br>When Nex proposes a file change, it\'ll show up here for you to approve or reject.</div>';
+        return;
+      }
+      items.forEach((item) => queueList.appendChild(renderQueueItem(item)));
+    } catch (err) {
+      queueList.innerHTML = '<div class="empty-hint">Couldn\'t load the queue.</div>';
+    }
+  }
+
+  async function handleQueueAction(id, action, el) {
+    el.style.opacity = '0.5';
+    try {
+      const res = await fetch('/api/queue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        alert('Failed: ' + data.error);
+        el.style.opacity = '1';
+        return;
+      }
+      loadQueue();
+    } catch (err) {
+      alert('Something went wrong.');
+      el.style.opacity = '1';
+    }
+  }
+
+  loadQueue();
+  setInterval(loadQueue, 8000);
+</script>
+
+</body>
+</html>

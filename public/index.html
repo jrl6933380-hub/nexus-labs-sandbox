@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexus Hub — Nex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0E14;
+    --panel: #12192A;
+    --panel-raised: #17203570;
+    --border: #1F2B42;
+    --blue: #2E7FFF;
+    --blue-dim: #2E7FFF33;
+    --cyan: #4DD8E8;
+    --text: #E4E9F2;
+    --text-dim: #8891A3;
+    --text-faint: #5B6577;
+    --amber: #E8A94D;
+    --red: #E85D5D;
+    --green: #4DE8A0;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', -apple-system, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    height: 100vh;
+    overflow: hidden;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: center center;
+    background-attachment: fixed;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, #2E7FFF14 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app {
+    display: grid;
+    grid-template-columns: 260px 1fr 300px;
+    height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===== Shared panel styling ===== */
+  .panel {
+    background: rgba(18, 25, 42, 0.55);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 20px 18px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+  }
+
+  /* ===== LEFT: Identity + Projects ===== */
+  .nex-id {
+    padding: 22px 18px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nex-name-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+
+  .nex-name {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 0 0 var(--cyan);
+    animation: pulse 2.4s infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 #4DD8E866; }
+    70% { box-shadow: 0 0 0 8px #4DD8E800; }
+    100% { box-shadow: 0 0 0 0 #4DD8E800; }
+  }
+
+  .nex-pulse-line {
+    height: 2px;
+    width: 100%;
+    background: linear-gradient(90deg, var(--cyan), transparent 70%);
+    background-size: 200% 100%;
+    animation: sweep 3s ease-in-out infinite;
+    margin-top: 10px;
+    opacity: 0.7;
+  }
+
+  @keyframes sweep {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .nex-status {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    padding: 16px 4px 8px;
+  }
+
+  .project-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+
+  .project-card:hover {
+    border-color: #2E7FFF55;
+    background: rgba(46,127,255,0.05);
+  }
+
+  .project-name {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    padding: 3px 7px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+
+  .status-draft {
+    background: #5B657722;
+    color: var(--text-dim);
+  }
+
+  .status-review {
+    background: #E8A94D1c;
+    color: var(--amber);
+  }
+
+  .status-live {
+    background: #4DD8E81c;
+    color: var(--cyan);
+  }
+
+  .empty-hint {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--text-faint);
+    line-height: 1.6;
+    padding: 8px 4px;
+  }
+
+  /* ===== CENTER: Chat ===== */
+  .chat-panel {
+    display: flex;
+    flex-direction: column;
+    background: rgba(10, 14, 20, 0.3);
+  }
+
+  .chat-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .chat-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--blue), var(--cyan));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 14px;
+    color: #06090F;
+  }
+
+  .chat-header-title {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .chat-header-sub {
+    font-size: 11px;
+    color: var(--text-faint);
+    font-family: var(--mono);
+  }
+
+  .token-total {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--text-faint);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .chat-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .msg {
+    max-width: 72%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .msg-nex {
+    align-self: flex-start;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-top-left-radius: 3px;
+  }
+
+  .msg-user {
+    align-self: flex-end;
+    background: var(--blue-dim);
+    border: 1px solid #2E7FFF44;
+    border-top-right-radius: 3px;
+  }
+
+  .msg-sender {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    margin-bottom: 5px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .msg-meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    margin-top: 6px;
+    opacity: 0.75;
+  }
+
+  .msg-meta .model-tag {
+    color: var(--cyan);
+  }
+
+  .thinking-dots::after {
+    content: '';
+    animation: dots 1.2s steps(4, end) infinite;
+  }
+
+  @keyframes dots {
+    0% { content: ''; }
+    25% { content: '.'; }
+    50% { content: '..'; }
+    75% { content: '...'; }
+    100% { content: ''; }
+  }
+
+  /* ===== Model picker — sits in its own small row above the input,
+     like a chat toolbar. Auto is the default; picking Haiku/Sonnet/
+     Opus forces that tier for the next message instead of letting
+     classifyTier decide. ===== */
+  .model-picker-row {
+    padding: 10px 24px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .model-picker-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .model-select {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 8px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    outline: none;
+  }
+
+  .model-select:focus {
+    border-color: var(--blue);
+  }
+
+  .chat-input-row {
+    padding: 10px 24px 22px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+  }
+
+  .chat-input {
+    flex: 1;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  .chat-input:focus {
+    border-color: var(--blue);
+  }
+
+  .chat-input::placeholder {
+    color: var(--text-faint);
+  }
+
+  .send-btn {
+    background: var(--blue);
+    color: #06090F;
+    border: none;
+    border-radius: 8px;
+    padding: 0 20px;
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .send-btn:hover { background: #4A8FFF; }
+  .send-btn:disabled { opacity: 0.5; cursor: default; }
+
+  /* ===== RIGHT: Approval Queue ===== */
+  .queue-panel {
+    border-right: none;
+    border-left: 1px solid var(--border);
+  }
+
+  .queue-item {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--amber);
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+
+  .queue-item-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+
+  .queue-item-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+
+  .queue-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-run, .btn-skip {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 6px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    text-transform: uppercase;
+  }
+
+  .btn-run {
+    background: var(--blue);
+    color: #06090F;
+  }
+
+  .btn-run:hover { background: #4A8FFF; }
+
+  .btn-skip {
+    background: transparent;
+    border-color: var(--border);
+    color: var(--text-dim);
+  }
+
+  .btn-skip:hover { border-color: var(--text-faint); }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ===== Mobile chips (Memory + Queue + Connectors) — shown when
+     the side panels are hidden below 900px, so all stay reachable. ===== */
+  .mobile-chips {
+    display: none;
+  }
+
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    .panel:not(.chat-panel) { display: none; }
+    .mobile-chips {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 10;
+    }
+    .mobile-chip {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--cyan);
+      text-decoration: none;
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: rgba(18,25,42,0.85);
+      text-align: right;
+    }
+    .mobile-chip.queue-chip {
+      color: var(--amber);
+    }
+    .mobile-chip.connectors-chip {
+      color: var(--green);
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="mobile-chips">
+  <a href="/memory.html" class="mobile-chip">Memory →</a>
+  <a href="/queue.html" class="mobile-chip queue-chip" id="queue-chip">Queue →</a>
+  <a href="/connectors.html" class="mobile-chip connectors-chip">Connectors →</a>
+</div>
+
+<div class="app">
+
+  <!-- LEFT: Identity + Projects -->
+  <div class="panel">
+    <div class="nex-id">
+      <div class="nex-name-row">
+        <span class="nex-name">NEX</span>
+        <span class="pulse-dot"></span>
+      </div>
+      <div class="nex-status">operator: mr. lopez</div>
+      <div class="nex-pulse-line"></div>
+      <a href="/memory.html" style="display:inline-block; margin-top:14px; font-family:var(--mono); font-size:11px; color:var(--cyan); text-decoration:none; border:1px solid var(--border); padding:6px 10px; border-radius:6px;">View Memory →</a>
+      <a href="/queue.html" style="display:inline-block; margin-top:8px; margin-left:8px; font-family:var(--mono); font-size:11px; color:var(--amber); text-decoration:none; border:1px solid var(--border); padding:6px 10px; border-radius:6px;">View Queue →</a>
+      <a href="/connectors.html" style="display:inline-block; margin-top:8px; font-family:var(--mono); font-size:11px; color:var(--green); text-decoration:none; border:1px solid var(--border); padding:6px 10px; border-radius:6px;">View Connectors →</a>
+    </div>
+
+    <div class="panel-body">
+      <div class="section-label">Projects</div>
+      <div class="empty-hint">No projects yet.<br>First client project will show up here.</div>
+
+      <div class="section-label" style="margin-top: 24px;">System</div>
+      <div class="project-card" style="cursor: default;">
+        <div class="project-name" style="font-size: 12px; margin-bottom: 4px;">Identity</div>
+        <span class="status-badge status-live">Loaded</span>
+      </div>
+      <div class="project-card" style="cursor: default;">
+        <div class="project-name" style="font-size: 12px; margin-bottom: 4px;">Capabilities</div>
+        <span class="status-badge status-live">GitHub + Memory</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER: Chat -->
+  <div class="panel chat-panel">
+    <div class="chat-header">
+      <div class="chat-header-left">
+        <div class="avatar">N</div>
+        <div>
+          <div class="chat-header-title">Nex</div>
+          <div class="chat-header-sub">online · standing by</div>
+        </div>
+      </div>
+      <div class="token-total" id="tokenTotal">0 tokens this session</div>
+    </div>
+
+    <div class="chat-scroll" id="chatScroll">
+      <div class="empty-hint" id="historyLoading">Loading conversation...</div>
+    </div>
+
+    <div class="model-picker-row">
+      <span class="model-picker-label">Model:</span>
+      <select class="model-select" id="modelSelect">
+        <option value="">Auto</option>
+        <option value="cheap">Haiku</option>
+        <option value="standard">Sonnet</option>
+        <option value="heavy">Opus</option>
+      </select>
+    </div>
+
+    <div class="chat-input-row">
+      <input class="chat-input" id="chatInput" type="text" placeholder="Message Nex..." />
+      <button class="send-btn" id="sendBtn">Send</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: Approval Queue -->
+  <div class="panel queue-panel">
+    <div class="panel-header">
+      <span class="panel-title">Approval Queue</span>
+    </div>
+    <div class="panel-body" id="queue-list">
+      <div class="empty-hint">Nothing waiting on you right now.<br><br>When Nex proposes a fix or action on live work, it'll show up here for you to run or skip.</div>
+    </div>
+  </div>
+
+</div>
+<script>
+  const chatScroll = document.getElementById('chatScroll');
+  const chatInput = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const queueList = document.getElementById('queue-list');
+  const queueChip = document.getElementById('queue-chip');
+  const modelSelect = document.getElementById('modelSelect');
+  const tokenTotalEl = document.getElementById('tokenTotal');
+
+  // Friendly display names for the raw model strings the API returns —
+  // mirrors MODEL_DISPLAY_NAMES in lib/nexBrain.js, just client-side
+  // so the badge can show "Sonnet" instead of "claude-sonnet-5".
+  const MODEL_LABELS = {
+    'claude-haiku-4-5-20251001': 'Haiku',
+    'claude-sonnet-5': 'Sonnet',
+    'claude-opus-5': 'Opus',
+  };
+
+  // Remember the model choice across page loads/navigation.
+  const savedModel = localStorage.getItem('nex-model-choice');
+  if (savedModel) modelSelect.value = savedModel;
+  modelSelect.addEventListener('change', () => {
+    localStorage.setItem('nex-model-choice', modelSelect.value);
+  });
+
+  let sessionTokens = { input: 0, output: 0 };
+
+  function updateTokenTotal() {
+    const total = sessionTokens.input + sessionTokens.output;
+    tokenTotalEl.textContent = `${total.toLocaleString()} tokens (${sessionTokens.input.toLocaleString()} in / ${sessionTokens.output.toLocaleString()} out)`;
+  }
+
+  function addMessage(sender, text, meta) {
+    const msg = document.createElement('div');
+    msg.className = sender === 'nex' ? 'msg msg-nex' : 'msg msg-user';
+    let html = `<div class="msg-sender">${sender === 'nex' ? 'Nex' : 'Mr. Lopez'}</div>${text}`;
+
+    // Who-answered + token badge — only for real Nex replies, not the
+    // "thinking..." placeholder or user messages.
+    if (sender === 'nex' && meta && meta.model) {
+      const label = MODEL_LABELS[meta.model] || meta.model;
+      const usage = meta.usage;
+      const usageText = usage ? ` · ${(usage.input_tokens + usage.output_tokens).toLocaleString()} tokens` : '';
+      html += `<div class="msg-meta"><span class="model-tag">${label}</span>${usageText}</div>`;
+    }
+
+    msg.innerHTML = html;
+    chatScroll.appendChild(msg);
+    chatScroll.scrollTop = chatScroll.scrollHeight;
+    return msg;
+  }
+
+  // Fetches whatever conversation is already saved and renders it,
+  // instead of always showing the same hardcoded greeting. This is
+  // what makes navigating back from Memory/Queue/Connectors actually
+  // feel like returning to the same chat, instead of starting fresh —
+  // the conversation was never lost, this page just never asked for it
+  // before.
+  async function loadHistory() {
+    const loadingEl = document.getElementById('historyLoading');
+    try {
+      const res = await fetch('/api/chat');
+      const data = await res.json();
+      const messages = data.messages || [];
+
+      if (loadingEl) loadingEl.remove();
+
+      if (messages.length === 0) {
+        addMessage('nex', "Hey Mr. Lopez. I'm up and I know who I am — just don't have any real capabilities wired in yet. Once we build the first one, it'll show up here and in the queue on the right.");
+        return;
+      }
+
+      messages.forEach((msg) => {
+        const sender = msg.role === 'assistant' ? 'nex' : 'user';
+        addMessage(sender, msg.content, msg);
+        // Rebuild the running token total from stored history, so it
+        // reflects the whole saved conversation, not just this page load.
+        if (sender === 'nex' && msg.usage) {
+          sessionTokens.input += msg.usage.input_tokens || 0;
+          sessionTokens.output += msg.usage.output_tokens || 0;
+        }
+      });
+      updateTokenTotal();
+    } catch (err) {
+      if (loadingEl) loadingEl.remove();
+      addMessage('nex', "Couldn't load our previous conversation, but I'm here now.");
+    }
+  }
+
+  async function sendMessage() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+
+    addMessage('user', text);
+    chatInput.value = '';
+    sendBtn.disabled = true;
+
+    // Animated "thinking" indicator — the dots keep moving via CSS
+    // animation on .thinking-dots, so it stays visibly alive even
+    // during longer replies (e.g. when Nex calls a tool, which means
+    // two Claude API calls happening in sequence behind the scenes).
+    const thinkingMsg = addMessage('nex', '<span class="thinking-dots">Thinking</span>');
+
+    // Reassure the user it's still working if it's taking a while —
+    // swaps the label after a few seconds without resetting the dots.
+    const slowNotice = setTimeout(() => {
+      const label = thinkingMsg.querySelector('.thinking-dots');
+      if (label) label.textContent = 'Still working on it';
+    }, 4000);
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, model: modelSelect.value || undefined }),
+      });
+
+      const data = await res.json();
+      clearTimeout(slowNotice);
+
+      if (data.error) {
+        thinkingMsg.innerHTML = `<div class="msg-sender">Nex</div>Something broke: ${data.error}`;
+      } else {
+        const label = data.model ? (MODEL_LABELS[data.model] || data.model) : '';
+        const usageText = data.usage ? ` · ${(data.usage.input_tokens + data.usage.output_tokens).toLocaleString()} tokens` : '';
+        const metaLine = label ? `<div class="msg-meta"><span class="model-tag">${label}</span>${usageText}</div>` : '';
+        thinkingMsg.innerHTML = `<div class="msg-sender">Nex</div>${data.reply}${metaLine}`;
+
+        if (data.usage) {
+          sessionTokens.input += data.usage.input_tokens || 0;
+          sessionTokens.output += data.usage.output_tokens || 0;
+          updateTokenTotal();
+        }
+      }
+    } catch (err) {
+      clearTimeout(slowNotice);
+      thinkingMsg.innerHTML = `<div class="msg-sender">Nex</div>Couldn't reach the server. Check your connection or Vercel logs.`;
+    }
+
+    sendBtn.disabled = false;
+    loadQueue(); // a new message may have just proposed something new
+  }
+
+  function renderQueueItem(item) {
+    const el = document.createElement('div');
+    el.className = 'queue-item';
+    const label = item.tool.replace('_repo_file', '').replace('_', ' ');
+    el.innerHTML = `
+      <div class="queue-item-title"></div>
+      <div class="queue-item-desc"></div>
+      <div class="queue-actions">
+        <button class="btn-run">Approve</button>
+        <button class="btn-skip">Reject</button>
+      </div>
+    `;
+    const itemLabel = item.input && item.input.path
+      ? `${label} — ${item.input.path}`
+      : `${label} — ${item.input && (item.input.name || item.input.repo) || ''}`;
+    el.querySelector('.queue-item-title').innerText = itemLabel;
+    el.querySelector('.queue-item-desc').innerText = item.description;
+    el.querySelector('.btn-run').addEventListener('click', () => handleQueueAction(item.id, 'approve', el));
+    el.querySelector('.btn-skip').addEventListener('click', () => handleQueueAction(item.id, 'reject', el));
+    return el;
+  }
+
+  async function loadQueue() {
+    try {
+      const res = await fetch('/api/queue');
+      const data = await res.json();
+      const items = data.items || [];
+
+      if (queueChip) {
+        queueChip.textContent = items.length > 0 ? `Queue (${items.length}) →` : 'Queue →';
+      }
+
+      queueList.innerHTML = '';
+      if (items.length === 0) {
+        queueList.innerHTML = '<div class="empty-hint">Nothing waiting on you right now.<br><br>When Nex proposes a fix or action on live work, it\'ll show up here for you to run or skip.</div>';
+        return;
+      }
+      items.forEach((item) => queueList.appendChild(renderQueueItem(item)));
+    } catch (err) {
+      queueList.innerHTML = '<div class="empty-hint">Couldn\'t load the queue.</div>';
+    }
+  }
+
+  async function handleQueueAction(id, action, el) {
+    el.style.opacity = '0.5';
+    try {
+      const res = await fetch('/api/queue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        alert('Failed: ' + data.error);
+        el.style.opacity = '1';
+        return;
+      }
+      loadQueue();
+    } catch (err) {
+      alert('Something went wrong.');
+      el.style.opacity = '1';
+    }
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
+
+  loadHistory();
+  loadQueue();
+  setInterval(loadQueue, 10000); // refresh every 10s so new proposals show up automatically
+</script>
+
+</body>
+</html>

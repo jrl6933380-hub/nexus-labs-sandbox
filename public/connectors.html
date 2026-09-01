@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexus Labs — Connectors</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0E14;
+    --border: #1F2B42;
+    --blue: #2E7FFF;
+    --cyan: #4DD8E8;
+    --text: #E4E9F2;
+    --text-dim: #8891A3;
+    --text-faint: #5B6577;
+    --amber: #E8A94D;
+    --green: #4DE8A0;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', -apple-system, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 48px 48px;
+    padding: 32px 18px 80px;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 50% at 50% 0%, #2E7FFF14 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .wrap { max-width: 640px; margin: 0 auto; position: relative; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 10px;
+  }
+
+  h1 {
+    font-family: var(--mono);
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 10px;
+  }
+
+  .tagline {
+    color: var(--text-dim);
+    font-size: 14.5px;
+    line-height: 1.55;
+    margin-bottom: 36px;
+    max-width: 480px;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin: 32px 0 14px;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+
+  .card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .card-name {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 5px;
+  }
+
+  .badge-live {
+    background: #4DE8A01c;
+    color: var(--green);
+  }
+
+  .badge-soon {
+    background: #5B657722;
+    color: var(--text-faint);
+  }
+
+  .card-desc {
+    font-size: 13.5px;
+    color: var(--text-dim);
+    line-height: 1.55;
+    margin-bottom: 14px;
+  }
+
+  .card-tools {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-bottom: 14px;
+    line-height: 1.7;
+  }
+
+  .card-tools span {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-right: 6px;
+    display: inline-block;
+    margin-bottom: 4px;
+  }
+
+  .url-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .url-box {
+    flex: 1;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 9px 11px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--text-dim);
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .copy-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    background: var(--blue);
+    color: #06090F;
+    border: none;
+    border-radius: 6px;
+    padding: 0 14px;
+    cursor: pointer;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+
+  .copy-btn:active { opacity: 0.7; }
+
+  .footer-note {
+    margin-top: 40px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    line-height: 1.7;
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="eyebrow">Nexus Labs</div>
+  <h1>Connectors</h1>
+  <p class="tagline">
+    Tools built entirely from a phone, for people who build from a phone.
+    Each one is a real Claude connector — copy the URL into your own
+    Claude connector settings to use it.
+  </p>
+
+  <div class="section-label">Live</div>
+
+  <div class="card">
+    <div class="card-top">
+      <span class="card-name">github-write</span>
+      <span class="badge badge-live">Live</span>
+    </div>
+    <p class="card-desc">
+      Read and write files in a GitHub repo — create, update, delete,
+      and list. Built and tested end to end, used every night to ship
+      this whole project.
+    </p>
+    <div class="card-tools">
+      <span>create_file</span><span>update_file</span><span>delete_file</span><span>list_files</span>
+    </div>
+    <div class="url-row">
+      <div class="url-box" id="url-github">https://github-write-mcp.vercel.app/api/mcp</div>
+      <button class="copy-btn" onclick="copyUrl('url-github', this)">Copy</button>
+    </div>
+  </div>
+
+  <div class="section-label">Coming soon</div>
+
+  <div class="card">
+    <div class="card-top">
+      <span class="card-name">email</span>
+      <span class="badge badge-soon">Planned</span>
+    </div>
+    <p class="card-desc">Send emails on your behalf — client updates, notifications, follow-ups.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <span class="card-name">domains</span>
+      <span class="badge badge-soon">Planned</span>
+    </div>
+    <p class="card-desc">Check availability, register, and point domains at a live deployment.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <span class="card-name">figma</span>
+      <span class="badge badge-soon">Planned</span>
+    </div>
+    <p class="card-desc">Read real design files and turn them into working code.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <span class="card-name">stripe</span>
+      <span class="badge badge-soon">Planned</span>
+    </div>
+    <p class="card-desc">Payments and billing — for you, or for the businesses you build sites for.</p>
+  </div>
+
+  <div class="footer-note">
+    Built by Mr. Lopez, entirely from an iPhone. No laptop, no desk —
+    just the GitHub app, Vercel, and Claude.
+  </div>
+</div>
+
+<script>
+  function copyUrl(id, btn) {
+    const text = document.getElementById(id).innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      const original = btn.innerText;
+      btn.innerText = 'Copied';
+      setTimeout(() => { btn.innerText = original; }, 1500);
+    });
+  }
+</script>
+
+</body>
+</html>

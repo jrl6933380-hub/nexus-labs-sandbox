@@ -635,7 +635,7 @@
           <div class="mission-live" id="missionLive">● LIVE STATE</div>
         </div>
         <div class="mission-core">
-          <div class="goal-orbit-wrap">
+          <div class="goal-orbit-wrap" id="goalOrbitControl" role="button" tabindex="0" aria-label="Cycle through active agents">
             <div class="goal-orbit" id="goalOrbit"></div>
             <span class="orbit-label orbit-nex"></span><span class="orbit-label orbit-gpt"></span>
             <span class="orbit-label orbit-claude"></span><span class="orbit-label orbit-e2b"></span>
@@ -643,6 +643,7 @@
           </div>
           <div class="agent-grid" id="agentGrid"></div>
         </div>
+        <div class="mission-detail" id="missionDetail" aria-live="polite"></div>
         <div class="mission-footer" id="missionFooter"></div>
       </section>
       <div class="empty-hint" id="historyLoading">Loading conversation...</div>
@@ -706,9 +707,36 @@
     return String(value || '').replace(/[&<>"']/g, (ch) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   }
 
+  let missionAgents = [];
+  let missionTasks = [];
+  let selectedMissionAgent = 0;
+
+  function selectMissionAgent(index) {
+    if (!missionAgents.length) return;
+    selectedMissionAgent = (index + missionAgents.length) % missionAgents.length;
+    const agent = missionAgents[selectedMissionAgent];
+    const visual = AGENT_VISUALS[agent.id] || { color:'#8891A3', label:agent.display_name || agent.id };
+    const owned = missionTasks.filter((task) => task.owner === agent.id);
+    const task = owned.find((item) => item.status !== 'complete') || owned[0];
+    const status = task?.status || agent.status || 'available';
+    const detail = document.getElementById('missionDetail');
+    document.querySelectorAll('.agent-card').forEach((card) => {
+      const active = card.dataset.agentId === agent.id;
+      card.classList.toggle('selected', active);
+      card.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    document.getElementById('goalOrbitControl').style.setProperty('--selected-agent-color', visual.color);
+    detail.innerHTML = `<span class="mission-detail-dot" style="background:${visual.color};box-shadow:0 0 12px ${visual.color}"></span>
+      <div><strong>${safeText(agent.display_name || visual.label)}</strong><span>${safeText(status)}</span>
+      <p>${safeText(task?.title || 'Ready for the next assignment')}</p></div>
+      <span class="mission-detail-hint">tap orbit to cycle</span>`;
+  }
+
   function renderMissionBoard(board) {
     const tasks = board.tasks || [];
     const agents = board.agents && board.agents.length ? board.agents : demoBoard.agents;
+    missionAgents = agents.slice(0, 6);
+    missionTasks = tasks;
     const open = tasks.filter((task) => task.status !== 'complete');
     const completed = tasks.filter((task) => task.status === 'complete').length;
     const progress = tasks.length ? Math.round(tasks.reduce((sum, task) => sum + (STATUS_PROGRESS[task.status] || 0), 0) / tasks.length) : 0;
@@ -735,12 +763,20 @@
       const owned = tasks.filter((task) => task.owner === agent.id);
       const task = owned.find((item) => item.status !== 'complete') || owned[0];
       const agentProgress = task ? (STATUS_PROGRESS[task.status] || 0) : (agent.status === 'online' ? 8 : 0);
-      return `<div class="agent-card">
+      return `<div class="agent-card" role="button" tabindex="0" aria-pressed="false" data-agent-id="${safeText(agent.id)}">
         <div class="agent-head"><span class="agent-name" style="color:${visual.color}">${safeText(agent.display_name || visual.label)}</span><span class="agent-state">${safeText(task?.status || agent.status)}</span></div>
         <div class="agent-bar"><span class="agent-fill" style="width:${agentProgress}%;background:${visual.color}"></span></div>
         <div class="agent-task">${safeText(task?.title || 'Available for assignment')}</div>
       </div>`;
     }).join('');
+    document.querySelectorAll('.agent-card').forEach((card, index) => {
+      const activate = () => selectMissionAgent(index);
+      card.addEventListener('click', activate);
+      card.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); activate(); }
+      });
+    });
+    selectMissionAgent(Math.min(selectedMissionAgent, Math.max(missionAgents.length - 1, 0)));
 
     const needsJustin = tasks.filter((task) => task.status === 'waiting_for_justin').length;
     document.getElementById('missionFooter').innerHTML =
@@ -761,6 +797,12 @@
       renderMissionBoard(demoBoard);
     }
   }
+
+  const orbitControl = document.getElementById('goalOrbitControl');
+  orbitControl.addEventListener('click', () => selectMissionAgent(selectedMissionAgent + 1));
+  orbitControl.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectMissionAgent(selectedMissionAgent + 1); }
+  });
 
   const chatScroll = document.getElementById('chatScroll');
   const chatInput = document.getElementById('chatInput');

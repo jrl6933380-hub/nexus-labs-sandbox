@@ -75,6 +75,17 @@ test('heartbeat rejects stale credentials and extends a valid lease', async () =
   assert.equal(alive.lease_expires_at, 115);
 });
 
+test('an expired lease cannot complete work before recovery runs', async () => {
+  let clock = 100;
+  const store = new MemoryDispatchStore();
+  const dispatcher = createDispatcher({ store, listAgentsFn: async () => [claude], now: () => clock, leaseMs: 10 });
+  const claimed = await dispatcher.dispatch(envelope());
+  clock = 111;
+  const completed = await dispatcher.complete(envelope(),
+    { agentId: 'claude', leaseToken: claimed.record.lease_token }, { unsafe: true });
+  assert.equal(completed, null);
+});
+
 test('failure backs off exponentially and dead-letters at the attempt limit', async () => {
   let clock = 100;
   const store = new MemoryDispatchStore();

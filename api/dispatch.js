@@ -1,11 +1,21 @@
 import { createDispatcher, RedisDispatchStore } from '../lib/dispatcher.js';
 import { createBoardDispatchService } from '../lib/boardDispatcher.js';
 import { listTasks, claimTask, updateProgress, markBlocked, completeTask } from '../lib/board.js';
+import { fireClaudeRoutine, createRedisWakeLedger } from '../lib/routineWake.js';
 
 function service() {
   const dispatcher = createDispatcher({ store: new RedisDispatchStore() });
+  // Only wired when the routine env vars are actually configured, so
+  // this endpoint keeps working (Nex/local dispatch unaffected) before
+  // Justin has created the routine at claude.ai/code/routines and set
+  // CLAUDE_ROUTINE_FIRE_URL / CLAUDE_ROUTINE_TRIGGER_TOKEN.
+  const routineConfigured = process.env.CLAUDE_ROUTINE_FIRE_URL && process.env.CLAUDE_ROUTINE_TRIGGER_TOKEN;
+  const wake = routineConfigured
+    ? { 'claude-routine': (envelope, record) =>
+        fireClaudeRoutine(envelope, { ledger: createRedisWakeLedger() }) }
+    : {};
   return createBoardDispatchService({ dispatcher,
-    board: { claimTask, updateProgress, markBlocked, completeTask } });
+    board: { claimTask, updateProgress, markBlocked, completeTask }, wake });
 }
 
 export default async function handler(req, res) {

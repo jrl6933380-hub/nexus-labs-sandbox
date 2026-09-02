@@ -41,16 +41,20 @@ test('fires the routine with a minimal untrusted payload, not full task instruct
 
   assert.equal(calls.length, 1);
   const body = JSON.parse(calls[0].init.body);
-  assert.equal(body.task_id, 'task-1');
-  assert.equal(body.trace_id, 'task-1');
+  // The /fire endpoint takes a single freeform `text` field — anything
+  // else in the body is ignored by the API, so the task pointer has to
+  // live inside `text`.
+  assert.ok(body.text.includes('task-1'), 'the task_id must be present in the text pointer');
+  assert.equal(Object.keys(body).length, 1, 'body should contain only `text`');
   // Must NOT leak full task content — only a reference the woken
   // session uses to look the real task up via the Nexus connector.
+  assert.ok(!body.text.includes('acceptance_criteria'));
   assert.equal(body.goal, undefined);
   assert.equal(body.constraints, undefined);
   assert.equal(body.acceptance_criteria, undefined);
 });
 
-test('sends the trigger token as a bearer header and the required beta header, never in the body', async () => {
+test('sends the trigger token as a bearer header plus the required beta and version headers, never in the body', async () => {
   const { fetchImpl, calls } = mockFetchOk();
   await fireClaudeRoutine(envelope, {
     fetchImpl, fireUrl: 'https://api.example/fire', triggerToken: 'secret-token-xyz',
@@ -59,6 +63,7 @@ test('sends the trigger token as a bearer header and the required beta header, n
   const headers = calls[0].init.headers;
   assert.equal(headers.Authorization, 'Bearer secret-token-xyz');
   assert.equal(headers['anthropic-beta'], 'experimental-cc-routine-2026-04-01');
+  assert.equal(headers['anthropic-version'], '2023-06-01');
   const body = JSON.stringify(JSON.parse(calls[0].init.body));
   assert.ok(!body.includes('secret-token-xyz'), 'token must never appear in the request body');
 });
@@ -108,12 +113,12 @@ test('missing env vars fail loudly rather than firing with an undefined URL/toke
 // blocked_reason via an unredacted fetch error. ---
 
 test('REGRESSION: a token-shaped value in fireUrl (the swapped-env-vars case) never appears in the thrown error', async () => {
-  const leakedToken = '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';
+  const tokenShapedValue = 'sk-ant-oat01-EXAMPLE-NOT-A-REAL-TOKEN-used-only-to-prove-it-is-never-echoed';
   const fetchImpl = async () => { throw new Error('should never be called — must fail URL validation first'); };
   await assert.rejects(
-    () => fireClaudeRoutine(envelope, { fetchImpl, fireUrl: leakedToken, triggerToken: 'some-token', ledger: createMemoryWakeLedger() }),
+    () => fireClaudeRoutine(envelope, { fetchImpl, fireUrl: tokenShapedValue, triggerToken: 'some-token', ledger: createMemoryWakeLedger() }),
     (err) => {
-      assert.ok(!err.message.includes(leakedToken), 'the malformed "URL" (actually the token) must never be echoed back');
+      assert.ok(!err.message.includes(tokenShapedValue), 'the malformed "URL" (actually a token) must never be echoed back');
       assert.ok(err.message.includes('not a valid URL'));
       return true;
     }

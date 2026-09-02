@@ -102,3 +102,41 @@ test('missing env vars fail loudly rather than firing with an undefined URL/toke
     if (originalToken) process.env.CLAUDE_ROUTINE_TRIGGER_TOKEN = originalToken;
   }
 });
+
+// --- Regression coverage for the real incident: FIRE_URL/TRIGGER_TOKEN
+// swapped in config, and the token leaked into a board task's
+// blocked_reason via an unredacted fetch error. ---
+
+test('REGRESSION: a token-shaped value in fireUrl (the swapped-env-vars case) never appears in the thrown error', async () => {
+  const leakedToken = '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';
+  const fetchImpl = async () => { throw new Error('should never be called — must fail URL validation first'); };
+  await assert.rejects(
+    () => fireClaudeRoutine(envelope, { fetchImpl, fireUrl: leakedToken, triggerToken: 'some-token', ledger: createMemoryWakeLedger() }),
+    (err) => {
+      assert.ok(!err.message.includes(leakedToken), 'the malformed "URL" (actually the token) must never be echoed back');
+      assert.ok(err.message.includes('not a valid URL'));
+      return true;
+    }
+  );
+});
+
+test('REGRESSION: a genuine network failure redacts the trigger token from the error even if the URL was valid', async () => {
+  const secretToken = 'secret-token-that-must-never-appear';
+  const fetchImpl = async () => { throw new Error(`connect ECONNREFUSED — while calling with token ${secretToken}`); };
+  await assert.rejects(
+    () => fireClaudeRoutine(envelope, { fetchImpl, fireUrl: 'https://api.example/fire', triggerToken: secretToken, ledger: createMemoryWakeLedger() }),
+    (err) => {
+      assert.ok(!err.message.includes(secretToken), 'defense-in-depth redaction must strip the token even from an unrelated network error');
+      assert.ok(err.message.includes('[redacted]'));
+      return true;
+    }
+  );
+});
+
+test('a non-http(s) fireUrl is rejected before ever reaching fetch', async () => {
+  const fetchImpl = async () => { throw new Error('should never be called'); };
+  await assert.rejects(
+    () => fireClaudeRoutine(envelope, { fetchImpl, fireUrl: 'javascript:alert(1)', triggerToken: 't', ledger: createMemoryWakeLedger() }),
+    /must be an http\(s\) URL/
+  );
+});

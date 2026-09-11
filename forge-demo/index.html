@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ridgeline Home Services — Trusted Local Repairs &amp; Maintenance</title>
+<style>
+  :root {
+    --ink: #101418;
+    --paper: #f7f5f0;
+    --accent: #c05621;
+    --accent-dark: #8a3d17;
+    --line: #e4e0d8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 6vw;
+    border-bottom: 1px solid var(--line);
+  }
+  header .brand { font-weight: 700; font-size: 1.25rem; letter-spacing: -0.02em; }
+  header nav a {
+    margin-left: 28px;
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+  header nav a:hover { color: var(--accent); }
+  .hero {
+    padding: 90px 6vw 70px;
+    max-width: 760px;
+  }
+  .hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.1; margin-bottom: 18px; }
+  .hero p { font-size: 1.15rem; color: #444; margin-bottom: 28px; max-width: 560px; }
+  .btn {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    padding: 14px 28px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.15s ease;
+  }
+  .btn:hover { background: var(--accent-dark); }
+  section { padding: 60px 6vw; }
+  section h2 { font-size: 1.8rem; margin-bottom: 36px; }
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+  }
+  .service-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 26px;
+  }
+  .service-card h3 { font-size: 1.1rem; margin-bottom: 10px; }
+  .service-card p { color: #555; font-size: 0.95rem; }
+  .reviews { background: #fff; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .reviews-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+  }
+  .review-card {
+    padding: 22px;
+    border-left: 3px solid var(--accent);
+    background: var(--paper);
+    border-radius: 4px;
+  }
+  .review-card .stars { color: var(--accent); margin-bottom: 8px; }
+  .review-card p.quote { font-style: italic; color: #333; margin-bottom: 10px; }
+  .review-card .who { font-size: 0.85rem; color: #777; }
+  #contact { max-width: 560px; }
+  form { display: grid; gap: 14px; margin-top: 20px; }
+  input, textarea {
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-family: inherit;
+  }
+  textarea { resize: vertical; min-height: 100px; }
+  form button {
+    justify-self: start;
+    border: none;
+    cursor: pointer;
+  }
+  #form-status { font-size: 0.9rem; margin-top: 6px; color: var(--accent-dark); }
+  footer {
+    padding: 30px 6vw;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: #777;
+  }
+</style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">Ridgeline Home Services</div>
+    <nav>
+      <a href="#services">Services</a>
+      <a href="#reviews">Reviews</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <h1>Repairs and maintenance done right, the first time.</h1>
+    <p>Licensed, local, and background-checked technicians for plumbing, electrical, and general home repair — same-week scheduling across the metro area.</p>
+    <a class="btn" href="#contact">Get a free quote</a>
+  </section>
+
+  <section id="services">
+    <h2>Services</h2>
+    <div class="services-grid">
+      <div class="service-card">
+        <h3>Plumbing</h3>
+        <p>Leak repair, water heater install, drain clearing, and fixture replacement.</p>
+      </div>
+      <div class="service-card">
+        <h3>Electrical</h3>
+        <p>Panel upgrades, outlet and switch repair, lighting installation, code compliance.</p>
+      </div>
+      <div class="service-card">
+        <h3>General Repair</h3>
+        <p>Drywall patching, door and window fixes, small carpentry, and punch-list work.</p>
+      </div>
+      <div class="service-card">
+        <h3>Maintenance Plans</h3>
+        <p>Seasonal home checkups so small issues never turn into expensive ones.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="reviews" id="reviews">
+    <h2>What neighbors say</h2>
+    <div class="reviews-grid">
+      <div class="review-card">
+        <div class="stars">★★★★★</div>
+        <p class="quote">"Showed up on time, fixed the leak in twenty minutes, and didn't try to upsell me on anything I didn't need."</p>
+        <div class="who">— Dana M.</div>
+      </div>
+      <div class="review-card">
+        <div class="stars">★★★★★</div>
+        <p class="quote">"Rewired our whole kitchen outlet circuit in a day. Clean work, fair price."</p>
+        <div class="who">— Priya K.</div>
+      </div>
+      <div class="review-card">
+        <div class="stars">★★★★☆</div>
+        <p class="quote">"Solid general repair work. Scheduling took a couple days but worth the wait."</p>
+        <div class="who">— Tom R.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <h2>Get a free quote</h2>
+    <p>Tell us what's going on and we'll get back to you within one business day.</p>
+    <form id="quote-form">
+      <input type="text" name="name" placeholder="Full name" required>
+      <input type="email" name="email" placeholder="Email address" required>
+      <textarea name="message" placeholder="What do you need help with?" required></textarea>
+      <button class="btn" type="submit">Send request</button>
+    </form>
+    <div id="form-status"></div>
+  </section>
+
+  <footer>
+    <div>© 2025 Ridgeline Home Services — Demo site generated via Nexus Forge</div>
+    <div>Built from vault blueprint: business-site-shell v1</div>
+  </footer>
+
+  <script>
+    document.getElementById('quote-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var status = document.getElementById('form-status');
+      var data = new FormData(e.target);
+      if (!data.get('name') || !data.get('email') || !data.get('message')) {
+        status.textContent = 'Please fill in all fields.';
+        return;
+      }
+      status.textContent = 'Thanks — this is a Forge demo, no message was actually sent.';
+      e.target.reset();
+    });
+  </script>
+
+</body>
+</html>
